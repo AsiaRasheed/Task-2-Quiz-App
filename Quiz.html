@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            background-color: #f0f0f0;
+            background: linear-gradient(45deg, #e75454, #3f91d9); 
+        }
+
+        #quiz-container {
+            width: 800px !important;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+           
+            background: linear-gradient(45deg, #d28787, #a4c8e7);
+            box-shadow: 0 0 10px rgba(10, 10, 10, 0.1);
+            position: relative;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .question {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .options {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .options li {
+            margin-bottom: 10px;
+            background-color: #e0e0e0;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .options li:hover {
+            background-color: #ccc;
+        }
+
+        .options li.selected {
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        .options li.correct {
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        .options li.incorrect {
+            background-color: #f44336;
+            color: #fff;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #result img {
+            max-width: 100%;
+        }
+
+        #submit-btn, #restart-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        #submit-btn {
+            background-color: #0bbcb6;
+            color: white;
+            font-weight: 700;
+            width: 150px;
+            padding: 15px;
+        }
+
+        #submit-btn:hover {
+            background-color: #45a09d;
+        }
+
+        #restart-btn {
+            background-color: #f44336;
+            color: #fff;
+            display: none;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        #restart-btn:hover {
+            background-color: #d32f2f;
+            
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container">
+        <h1>Quiz App</h1>
+        <div id="quiz">
+            <div class="question"></div>
+            <ul class="options"></ul>
+            <button id="submit-btn">Submit</button>
+        </div>
+        <div id="result"></div>
+        <button id="restart-btn">Restart Quiz</button>
+    </div>
+
+    <script>
+       const quizData = [
+            {
+                question: "What is the capital of France?",
+                options: ["Paris", "Berlin", "Madrid", "Rome"],
+                correctAnswer: "Paris"
+            },
+            {
+                question: "Which is the largest planet in our solar system?",
+                options: ["Mars", "Earth", "Jupiter", "Saturn"],
+                correctAnswer: "Jupiter"
+            },
+            {
+                question: "What is the powerhouse of the cell?",
+                options: ["Nucleus", "Mitochondria", "Endoplasmic Reticulum", "Ribosome"],
+                correctAnswer: "Mitochondria"
+            },
+            {
+                question: "Who wrote 'Romeo and Juliet'?",
+                options: ["Charles Dickens", "Jane Austen", "William Shakespeare", "Mark Twain"],
+                correctAnswer: "William Shakespeare"
+            },
+            {
+                question: "What is the capital of Japan?",
+                options: ["Beijing", "Tokyo", "Seoul", "Bangkok"],
+                correctAnswer: "Tokyo"
+            },
+            {
+                question: "Which programming language is known as the 'mother of all languages'?",
+                options: ["Python", "Java", "C", "Assembly"],
+                correctAnswer: "C"
+            },
+            {
+                question: "What is the largest ocean on Earth?",
+                options: ["Atlantic", "Indian", "Southern", "Pacific"],
+                correctAnswer: "Pacific"
+            },
+            {
+                question: "What is the currency of Brazil?",
+                options: ["Euro", "Pound", "Real", "Yen"],
+                correctAnswer: "Real"
+            },
+            {
+                question: "Who is known as the 'Father of Computers'?",
+                options: ["Bill Gates", "Alan Turing", "Charles Babbage", "Steve Jobs"],
+                correctAnswer: "Charles Babbage"
+            },
+            {
+                question: "What is the speed of light?",
+                options: ["299,792 km/s", "150,000 km/s", "500,000 km/s", "200,000 km/s"],
+                correctAnswer: "299,792 km/s"
+            },
+        ];
+
+
+        let currentQuestion = 0;
+        let score = 0;
+        let userAnswers = [];
+
+        const quizContainer = document.getElementById("quiz");
+        const questionElement = document.querySelector(".question");
+        const optionsList = document.querySelector(".options");
+        const resultElement = document.getElementById("result");
+        const submitButton = document.getElementById("submit-btn");
+        const restartButton = document.getElementById("restart-btn");
+
+        function loadQuestion() {
+            const currentQuizData = quizData[currentQuestion];
+            questionElement.textContent = currentQuizData.question;
+
+            optionsList.innerHTML = "";
+            currentQuizData.options.forEach((option, index) => {
+                const li = document.createElement("li");
+                li.textContent = option;
+                li.addEventListener("click", () => selectAnswer(index));
+                optionsList.appendChild(li);
+            });
+
+            submitButton.disabled = true;
+        }
+
+        function selectAnswer(index) {
+            userAnswers[currentQuestion] = index;
+            const options = document.querySelectorAll('.options li');
+
+            options.forEach((option, i) => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+                if (i === index) {
+                    const currentQuizData = quizData[currentQuestion];
+                    const isCorrect = i === currentQuizData.options.indexOf(currentQuizData.correctAnswer);
+                    option.classList.add('selected', isCorrect ? 'correct' : 'incorrect');
+                }
+            });
+
+            submitButton.disabled = false;
+        }
+
+        function showResult() {
+            quizContainer.style.display = "none";
+            resultElement.innerHTML = `<p>Your score: ${score} out of ${quizData.length}</p>`;
+
+            if (score >= quizData.length / 2) {
+                resultElement.innerHTML += '<img src="https://media4.giphy.com/media/2gtoSIzdrSMFO/giphy.gif" alt="Winner" width=350>';
+            } else {
+                resultElement.innerHTML += '<img src="https://media3.giphy.com/media/9pdjLqb9W07InhmWza/giphy.gif?cid=6c09b952r0aqg8zjmwwlhl2gyfvnj5ci67q91tqm33u54md1&ep=v1_stickers_related&rid=giphy.gif&ct=ts" alt="Loser" width=350>';
+            }
+
+            restartButton.style.display = "block";
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            userAnswers = [];
+            quizContainer.style.display = "block";
+            resultElement.innerHTML = "";
+            restartButton.style.display = "none";
+            loadQuestion();
+        }
+
+        submitButton.addEventListener("click", () => {
+            const currentQuizData = quizData[currentQuestion];
+            const userAnswer = userAnswers[currentQuestion];
+            if (userAnswer === currentQuizData.options.indexOf(currentQuizData.correctAnswer)) {
+                score++;
+            }
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        });
+
+        restartButton.addEventListener("click", restartQuiz);
+
+       
+        loadQuestion();
+    </script>
+</body>
+</html>
